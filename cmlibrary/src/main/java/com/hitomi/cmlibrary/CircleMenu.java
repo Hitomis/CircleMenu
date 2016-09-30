@@ -53,9 +53,9 @@ public class CircleMenu extends View {
     };
 
 
-    private final float menuRadius = PART_SIZE * 3;
+    private final float circleMenuRadius = PART_SIZE * 3;
 
-    private float itemRadius;
+    private float itemMenuRadius;
 
     private float centerX, centerY;
 
@@ -124,7 +124,7 @@ public class CircleMenu extends View {
         centerX = getMeasuredWidth() / 2;
         centerY = centerX;
 
-        path.addCircle(centerX, centerY, menuRadius, Path.Direction.CW);
+        path.addCircle(centerX, centerY, circleMenuRadius, Path.Direction.CW);
         pathMeasure.setPath(path, true);
         pathLength = pathMeasure.getLength();
 
@@ -146,10 +146,12 @@ public class CircleMenu extends View {
                 drawAroundMenu(canvas);
                 break;
             case STATUS_MENU_CLOSE:
+                drawCenterMenu(canvas);
                 drawAroundMenu(canvas);
                 drawMenuClose(canvas);
                 break;
             case STATUS_MENU_CLOSE_CLEAR:
+                drawCenterMenu(canvas);
                 drawMenuClose(canvas);
                 break;
         }
@@ -169,7 +171,7 @@ public class CircleMenu extends View {
          } else {
             cPaint.setStrokeWidth(PART_SIZE * 2 + PART_SIZE * .5f * fraction);
             cPaint.setColor(calcAlphaColor(menuColors[clickIndex - 1], true));
-            canvas.drawCircle(centerX, centerY, menuRadius + PART_SIZE * .5f * fraction, cPaint);
+            canvas.drawCircle(centerX, centerY, circleMenuRadius + PART_SIZE * .5f * fraction, cPaint);
         }
 
         canvas.restore();
@@ -180,20 +182,20 @@ public class CircleMenu extends View {
         for (int i = 0; i < ITEM_NUM; i++) {
             angle = i * (360 / ITEM_NUM);
             if (status == STATUS_MENU_OPEN) {
-                itemX = (int) (centerX + Math.sin(Math.toRadians(angle)) * (menuRadius - (1 - fraction) * PART_SIZE * 1.5));
-                itemY = (int) (centerY - Math.cos(Math.toRadians(angle)) * (menuRadius- (1 - fraction) * PART_SIZE * 1.5));
+                itemX = (int) (centerX + Math.sin(Math.toRadians(angle)) * (circleMenuRadius - (1 - fraction) * PART_SIZE * 1.5));
+                itemY = (int) (centerY - Math.cos(Math.toRadians(angle)) * (circleMenuRadius - (1 - fraction) * PART_SIZE * 1.5));
                 if (i != 0) {
                     colorMatrix.setSaturation(fraction);
                     oPaint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
                 }
                 oPaint.setColor(calcAlphaColor(menuColors[i], false));
             } else {
-                itemX = (int) (centerX + Math.sin(Math.toRadians(angle)) * menuRadius);
-                itemY = (int) (centerY - Math.cos(Math.toRadians(angle)) * menuRadius);
+                itemX = (int) (centerX + Math.sin(Math.toRadians(angle)) * circleMenuRadius);
+                itemY = (int) (centerY - Math.cos(Math.toRadians(angle)) * circleMenuRadius);
                 oPaint.setColorFilter(null);
                 oPaint.setColor(menuColors[i]);
             }
-            canvas.drawCircle(itemX, itemY, itemRadius, oPaint);
+            canvas.drawCircle(itemX, itemY, itemMenuRadius, oPaint);
             menuRectFs[i + 1].set(itemX - PART_SIZE, itemY - PART_SIZE, itemX + PART_SIZE, itemY + PART_SIZE);
         }
     }
@@ -203,12 +205,23 @@ public class CircleMenu extends View {
      * @param canvas
      */
     private void drawCenterMenu(Canvas canvas) {
-        if (status == STATUS_MENU_CLOSED) {
-            oPaint.setColor(CENTER_MENU_UNPRESS_COLOR);
+        float centerMenuRadius;
+        int centerMenuColor;
+        if (status == STATUS_MENU_CLOSE) {
+            centerMenuRadius = PART_SIZE * (1 - fraction);
+            centerMenuColor = CENTER_MENU_PRESSED_COLOR;
+        } else if (status == STATUS_MENU_CLOSE_CLEAR) {
+            centerMenuRadius = PART_SIZE * fraction;
+            centerMenuColor = CENTER_MENU_UNPRESS_COLOR;
+        } else if (status == STATUS_MENU_CLOSED) {
+            centerMenuRadius = PART_SIZE;
+            centerMenuColor = CENTER_MENU_UNPRESS_COLOR;
         } else {
-            oPaint.setColor(CENTER_MENU_PRESSED_COLOR);
+            centerMenuRadius = PART_SIZE;
+            centerMenuColor = CENTER_MENU_PRESSED_COLOR;
         }
-        canvas.drawCircle(centerX, centerY, PART_SIZE, oPaint);
+        oPaint.setColor(centerMenuColor);
+        canvas.drawCircle(centerX, centerY, centerMenuRadius, oPaint);
     }
 
     @Override
@@ -254,7 +267,7 @@ public class CircleMenu extends View {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
                 fraction = valueAnimator.getAnimatedFraction();
-                itemRadius = fraction * PART_SIZE;
+                itemMenuRadius = fraction * PART_SIZE;
                 invalidate();
             }
         });
@@ -276,7 +289,6 @@ public class CircleMenu extends View {
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
                 fraction = valueAnimator.getAnimatedFraction();
                 invalidate();
-                System.out.println("closeAnima" + fraction);
             }
         });
         closeAnima.addListener(new AnimatorListenerAdapter() {
