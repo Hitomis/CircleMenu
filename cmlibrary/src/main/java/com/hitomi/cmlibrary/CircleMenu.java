@@ -7,6 +7,7 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PathMeasure;
@@ -77,6 +78,8 @@ public class CircleMenu extends View {
 
     private Path path, dstPath;
 
+    private Matrix shadowMatrix;
+
     public CircleMenu(Context context) {
         this(context, null);
     }
@@ -103,6 +106,7 @@ public class CircleMenu extends View {
         path = new Path();
         dstPath = new Path();
         pathMeasure = new PathMeasure();
+//        shadowMatrix = new Matrix();
 
         for (int i = 0; i < menuRectFs.length; i++) {
             menuRectFs[i] = new RectF();
@@ -233,7 +237,25 @@ public class CircleMenu extends View {
         } else {
             oPaint.setColor(menuColors[0]);
         }
+
+
+//        Bitmap bitmap = Bitmap.createBitmap(PART_SIZE * 2, PART_SIZE * 2, Bitmap.Config.ARGB_8888);
+//        bitmap.eraseColor(0x0);
+//        int colors[] = {ColorUtils.setAlphaComponent(0xff000000, 24),
+//                ColorUtils.setAlphaComponent(0xff000000, 0)};
+//        float stops[] = {.5f, 1.f};
+//        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+//        paint.setShader(new RadialGradient(centerX, centerY, PART_SIZE + 20, colors, stops, Shader.TileMode.CLAMP));
+//        Canvas ShadowCanvas = new Canvas(bitmap);
+//        ShadowCanvas.drawRect(0, 0, PART_SIZE * 2, PART_SIZE * 2, paint);
+//        canvas.drawBitmap(bitmap, 0, 0 ,paint);
+//
+//        shadowMatrix.reset();
+//        shadowMatrix.postTranslate(PART_SIZE, PART_SIZE);
+//        paint.setAlpha(255);
+//        canvas.drawBitmap(bitmap, shadowMatrix, paint);
         canvas.drawCircle(centerX, centerY, centerMenuRadius, oPaint);
+
     }
 
     @Override
