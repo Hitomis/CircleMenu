@@ -7,8 +7,6 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PathMeasure;
@@ -36,22 +34,20 @@ public class CircleMenu extends View {
 
     private static final int STATUS_MENU_CLOSED = 1 << 4;
 
-    private static final int CENTER_MENU_UNPRESS_COLOR = Color.parseColor("#C0C0C0");
-
-    private static final int CENTER_MENU_PRESSED_COLOR = Color.parseColor("#505060");
+    private static final int STATUS_MENU_CANCEL = 1 << 5;
 
     private static final int ITEM_NUM = 5;
 
     private final int PART_SIZE = dip2Px(20);
 
     private final int[] menuColors = new int[] {
+            Color.parseColor("#C0C0C0"),
             Color.parseColor("#258CFF"),
             Color.parseColor("#30A400"),
             Color.parseColor("#FF4B32"),
             Color.parseColor("#8A39FF"),
             Color.parseColor("#FF6A00")
     };
-
 
     private final float circleMenuRadius = PART_SIZE * 3;
 
@@ -67,13 +63,15 @@ public class CircleMenu extends View {
 
     private int rotateAngle;
 
+    private int pressedColor;
+
     private int status;
+
+    private boolean pressed;
 
     private RectF[] menuRectFs = new RectF[ITEM_NUM + 1];
 
     private Paint oPaint, cPaint;
-
-    private ColorMatrix colorMatrix;
 
     private PathMeasure pathMeasure;
 
@@ -89,6 +87,7 @@ public class CircleMenu extends View {
 
     public CircleMenu(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        setLayerType(LAYER_TYPE_SOFTWARE, null);
         status = STATUS_MENU_CLOSED;
         init();
     }
@@ -104,7 +103,6 @@ public class CircleMenu extends View {
         path = new Path();
         dstPath = new Path();
         pathMeasure = new PathMeasure();
-        colorMatrix = new ColorMatrix();
 
         for (int i = 0; i < menuRectFs.length; i++) {
             menuRectFs[i] = new RectF();
@@ -148,17 +146,25 @@ public class CircleMenu extends View {
             case STATUS_MENU_CLOSE:
                 drawCenterMenu(canvas);
                 drawAroundMenu(canvas);
-                drawMenuClose(canvas);
+                drawCircleMenu(canvas);
                 break;
             case STATUS_MENU_CLOSE_CLEAR:
                 drawCenterMenu(canvas);
-                drawMenuClose(canvas);
+                drawCircleMenu(canvas);
+                break;
+            case STATUS_MENU_CANCEL:
+                drawCenterMenu(canvas);
+                drawAroundMenu(canvas);
                 break;
         }
 
     }
 
-    private void drawMenuClose(Canvas canvas) {
+    /**
+     * 绘制周围子菜单环绕的圆环路径
+     * @param canvas
+     */
+    private void drawCircleMenu(Canvas canvas) {
         canvas.save();
         if (status == STATUS_MENU_CLOSE) {
             canvas.rotate(rotateAngle, centerX, centerY);
@@ -166,34 +172,41 @@ public class CircleMenu extends View {
             dstPath.lineTo(0, 0);
             pathMeasure.getSegment(0, pathLength * fraction, dstPath, true);
             cPaint.setStrokeWidth(PART_SIZE * 2);
-            cPaint.setColor(menuColors[clickIndex - 1]);
+            cPaint.setColor(menuColors[clickIndex]);
             canvas.drawPath(dstPath, cPaint);
          } else {
             cPaint.setStrokeWidth(PART_SIZE * 2 + PART_SIZE * .5f * fraction);
-            cPaint.setColor(calcAlphaColor(menuColors[clickIndex - 1], true));
+            cPaint.setColor(calcAlphaColor(menuColors[clickIndex], true));
             canvas.drawCircle(centerX, centerY, circleMenuRadius + PART_SIZE * .5f * fraction, cPaint);
         }
 
         canvas.restore();
     }
 
+    /**
+     * 绘制周围子菜单项按钮
+     * @param canvas
+     */
     private void drawAroundMenu(Canvas canvas) {
         int itemX, itemY, angle;
+        final float offsetRadius = 1.5f;
         for (int i = 0; i < ITEM_NUM; i++) {
             angle = i * (360 / ITEM_NUM);
             if (status == STATUS_MENU_OPEN) {
-                itemX = (int) (centerX + Math.sin(Math.toRadians(angle)) * (circleMenuRadius - (1 - fraction) * PART_SIZE * 1.5));
-                itemY = (int) (centerY - Math.cos(Math.toRadians(angle)) * (circleMenuRadius - (1 - fraction) * PART_SIZE * 1.5));
-                if (i != 0) {
-                    colorMatrix.setSaturation(fraction);
-                    oPaint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
-                }
-                oPaint.setColor(calcAlphaColor(menuColors[i], false));
+                itemX = (int) (centerX + Math.sin(Math.toRadians(angle)) * (circleMenuRadius - (1 - fraction) * PART_SIZE * offsetRadius));
+                itemY = (int) (centerY - Math.cos(Math.toRadians(angle)) * (circleMenuRadius - (1 - fraction) * PART_SIZE * offsetRadius));
+                oPaint.setColor(calcAlphaColor(menuColors[i + 1], false));
+            } else if (status == STATUS_MENU_CANCEL) {
+                itemX = (int) (centerX + Math.sin(Math.toRadians(angle)) * (circleMenuRadius -  fraction * PART_SIZE * offsetRadius));
+                itemY = (int) (centerY - Math.cos(Math.toRadians(angle)) * (circleMenuRadius -  fraction * PART_SIZE * offsetRadius));
+                oPaint.setColor(calcAlphaColor(menuColors[i + 1], true));
             } else {
                 itemX = (int) (centerX + Math.sin(Math.toRadians(angle)) * circleMenuRadius);
                 itemY = (int) (centerY - Math.cos(Math.toRadians(angle)) * circleMenuRadius);
-                oPaint.setColorFilter(null);
-                oPaint.setColor(menuColors[i]);
+                oPaint.setColor(menuColors[i + 1]);
+            }
+            if (pressed && clickIndex - 1 == i) {
+                oPaint.setColor(pressedColor);
             }
             canvas.drawCircle(itemX, itemY, itemMenuRadius, oPaint);
             menuRectFs[i + 1].set(itemX - PART_SIZE, itemY - PART_SIZE, itemX + PART_SIZE, itemY + PART_SIZE);
@@ -201,41 +214,62 @@ public class CircleMenu extends View {
     }
 
     /**
-     * // 绘制中间的菜单开关按钮
+     * 绘制中间的菜单开关按钮
      * @param canvas
      */
     private void drawCenterMenu(Canvas canvas) {
         float centerMenuRadius;
-        int centerMenuColor;
         if (status == STATUS_MENU_CLOSE) {
             centerMenuRadius = PART_SIZE * (1 - fraction);
-            centerMenuColor = CENTER_MENU_PRESSED_COLOR;
         } else if (status == STATUS_MENU_CLOSE_CLEAR) {
             centerMenuRadius = PART_SIZE * fraction;
-            centerMenuColor = CENTER_MENU_UNPRESS_COLOR;
-        } else if (status == STATUS_MENU_CLOSED) {
+        } else if (status == STATUS_MENU_CLOSED || status == STATUS_MENU_CANCEL) {
             centerMenuRadius = PART_SIZE;
-            centerMenuColor = CENTER_MENU_UNPRESS_COLOR;
         } else {
             centerMenuRadius = PART_SIZE;
-            centerMenuColor = CENTER_MENU_PRESSED_COLOR;
         }
-        oPaint.setColor(centerMenuColor);
+        if (pressed && clickIndex == 0) {
+            oPaint.setColor(pressedColor);
+        } else {
+            oPaint.setColor(menuColors[0]);
+        }
         canvas.drawCircle(centerX, centerY, centerMenuRadius, oPaint);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (status == STATUS_MENU_CLOSE || status == STATUS_MENU_CLOSE_CLEAR) return true;
+        int index = clickWhichRectF(event.getX(), event.getY());
         switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                pressed = true;
+                if (index != -1) {
+                    clickIndex = index;
+                    updatePressEffect(index, pressed);
+                }
+                break;
+            case MotionEvent.ACTION_MOVE:
+                if (index == -1) {
+                    pressed = false;
+                    invalidate();
+                }
+                break;
             case MotionEvent.ACTION_UP:
-                clickIndex = clickWhichRectF(event.getX(), event.getY());
-                if (clickIndex == 0) { // 点击的是中间的按钮
+                pressed = false;
+                if (index != -1) {
+                    clickIndex = index;
+                    updatePressEffect(index, pressed);
+                }
+                if (index == 0) { // 点击的是中间的按钮
                     if (status == STATUS_MENU_CLOSED) {
                         status = STATUS_MENU_OPEN;
                         startOpenMenuAnima();
+                    } else if (status == STATUS_MENU_OPENED) {
+                        status = STATUS_MENU_CANCEL;
+                        startCancelMenuAnima();
                     }
-                } else {
-                    if (status == STATUS_MENU_OPENED && clickIndex != -1) {
+                } else { // 点击的是周围子菜单项按钮
+                    if (status == STATUS_MENU_OPENED && index != -1) {
                         status = STATUS_MENU_CLOSE;
                         rotateAngle = clickIndex * (360 / ITEM_NUM) -  (360 / ITEM_NUM) - 90 ;
                         startCloseMeunAnima();
@@ -246,6 +280,40 @@ public class CircleMenu extends View {
         return true;
     }
 
+    /**
+     * 更新按钮的状态
+     * @param menuIndex
+     * @param press
+     */
+    private void updatePressEffect(int menuIndex, boolean press) {
+        if (press) {
+            pressedColor = getPressedEffectColor(menuIndex);
+        }
+        invalidate();
+    }
+
+    /**
+     * 获取按钮被按下的颜色
+     * @param menuIndex
+     * @return
+     */
+    private int getPressedEffectColor(int menuIndex) {
+        int color;
+        color = menuColors[menuIndex];
+        float[] hsv = new float[3];
+        Color.colorToHSV(color, hsv);
+        hsv[2] *= 0.9f;
+        return Color.HSVToColor(hsv);
+    }
+
+    /**
+     * 用于完成在 View 中的圆环逐渐扩散消失的动画效果 <br/>
+     *
+     * 根据 fraction 调整 color 的 Alpha 值
+     * @param color 被调整 Alpha 值的颜色
+     * @param reverse true : 由不透明到透明的顺序调整，否则就逆序
+     * @return
+     */
     private int calcAlphaColor(int color, boolean reverse) {
         int alpha;
         if (reverse) { // 由不透明到透明
@@ -258,7 +326,9 @@ public class CircleMenu extends View {
         return ColorUtils.setAlphaComponent(color, alpha);
     }
 
-
+    /**
+     * 启动打开菜单动画
+     */
     private void startOpenMenuAnima() {
         ValueAnimator openAnima = ValueAnimator.ofFloat(1.f, 100.f);
         openAnima.setDuration(500);
@@ -280,6 +350,33 @@ public class CircleMenu extends View {
         openAnima.start();
     }
 
+    /**
+     * 启动取消动画
+     */
+    private void startCancelMenuAnima() {
+        ValueAnimator cancelAnima = ValueAnimator.ofFloat(1.f, 100.f);
+        cancelAnima.setDuration(500);
+        cancelAnima.setInterpolator(new OvershootInterpolator());
+        cancelAnima.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                fraction = valueAnimator.getAnimatedFraction();
+                itemMenuRadius = (1 - fraction) * PART_SIZE;
+                invalidate();
+            }
+        });
+        cancelAnima.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                status = STATUS_MENU_CLOSED;
+            }
+        });
+        cancelAnima.start();
+    }
+
+    /**
+     * 开启关闭菜单动画
+     */
     private void startCloseMeunAnima() {
         ValueAnimator closeAnima = ValueAnimator.ofFloat(1.f, 100.f);
         closeAnima.setDuration(500);
@@ -299,7 +396,7 @@ public class CircleMenu extends View {
         });
 
         ValueAnimator clearAnima = ValueAnimator.ofFloat(1.f, 100.f);
-        clearAnima.setDuration(800);
+        clearAnima.setDuration(600);
         clearAnima.setInterpolator(new DecelerateInterpolator());
         clearAnima.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
@@ -318,7 +415,6 @@ public class CircleMenu extends View {
         AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.play(closeAnima).before(clearAnima);
         animatorSet.start();
-
     }
 
     private int clickWhichRectF(float x, float y) {
