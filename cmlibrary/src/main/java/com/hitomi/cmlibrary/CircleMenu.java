@@ -7,11 +7,12 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PathMeasure;
+import android.graphics.RadialGradient;
 import android.graphics.RectF;
+import android.graphics.Shader;
 import android.support.v4.graphics.ColorUtils;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -39,7 +40,7 @@ public class CircleMenu extends View {
 
     private static final int ITEM_NUM = 5;
 
-    private final int PART_SIZE = dip2Px(20);
+    private final int partSize = dip2Px(20);
 
     private final int[] menuColors = new int[] {
             Color.parseColor("#C0C0C0"),
@@ -50,7 +51,9 @@ public class CircleMenu extends View {
             Color.parseColor("#FF6A00")
     };
 
-    private final float circleMenuRadius = PART_SIZE * 3;
+    private final float circleMenuRadius = partSize * 3;
+
+    private final int shadowRadius = 6;
 
     private float itemMenuRadius;
 
@@ -72,13 +75,11 @@ public class CircleMenu extends View {
 
     private RectF[] menuRectFs = new RectF[ITEM_NUM + 1];
 
-    private Paint oPaint, cPaint;
+    private Paint oPaint, cPaint, sPaint;
 
     private PathMeasure pathMeasure;
 
     private Path path, dstPath;
-
-    private Matrix shadowMatrix;
 
     public CircleMenu(Context context) {
         this(context, null);
@@ -103,10 +104,12 @@ public class CircleMenu extends View {
         cPaint.setStyle(Paint.Style.STROKE);
         cPaint.setStrokeCap(Paint.Cap.ROUND);
 
+        sPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        sPaint.setStyle(Paint.Style.FILL);
+
         path = new Path();
         dstPath = new Path();
         pathMeasure = new PathMeasure();
-//        shadowMatrix = new Matrix();
 
         for (int i = 0; i < menuRectFs.length; i++) {
             menuRectFs[i] = new RectF();
@@ -115,7 +118,7 @@ public class CircleMenu extends View {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int measureSize = PART_SIZE * 5 * 2;
+        int measureSize = partSize * 5 * 2;
         setMeasuredDimension(measureSize, measureSize);
     }
 
@@ -130,7 +133,7 @@ public class CircleMenu extends View {
         pathMeasure.setPath(path, true);
         pathLength = pathMeasure.getLength();
 
-        menuRectFs[0].set(centerX - PART_SIZE, centerY - PART_SIZE, centerX + PART_SIZE, centerY + PART_SIZE);
+        menuRectFs[0].set(centerX - partSize, centerY - partSize, centerX + partSize, centerY + partSize);
     }
 
     @Override
@@ -175,13 +178,13 @@ public class CircleMenu extends View {
             dstPath.reset();
             dstPath.lineTo(0, 0);
             pathMeasure.getSegment(0, pathLength * fraction, dstPath, true);
-            cPaint.setStrokeWidth(PART_SIZE * 2);
+            cPaint.setStrokeWidth(partSize * 2);
             cPaint.setColor(menuColors[clickIndex]);
             canvas.drawPath(dstPath, cPaint);
          } else {
-            cPaint.setStrokeWidth(PART_SIZE * 2 + PART_SIZE * .5f * fraction);
+            cPaint.setStrokeWidth(partSize * 2 + partSize * .5f * fraction);
             cPaint.setColor(calcAlphaColor(menuColors[clickIndex], true));
-            canvas.drawCircle(centerX, centerY, circleMenuRadius + PART_SIZE * .5f * fraction, cPaint);
+            canvas.drawCircle(centerX, centerY, circleMenuRadius + partSize * .5f * fraction, cPaint);
         }
 
         canvas.restore();
@@ -197,12 +200,12 @@ public class CircleMenu extends View {
         for (int i = 0; i < ITEM_NUM; i++) {
             angle = i * (360 / ITEM_NUM);
             if (status == STATUS_MENU_OPEN) {
-                itemX = (int) (centerX + Math.sin(Math.toRadians(angle)) * (circleMenuRadius - (1 - fraction) * PART_SIZE * offsetRadius));
-                itemY = (int) (centerY - Math.cos(Math.toRadians(angle)) * (circleMenuRadius - (1 - fraction) * PART_SIZE * offsetRadius));
+                itemX = (int) (centerX + Math.sin(Math.toRadians(angle)) * (circleMenuRadius - (1 - fraction) * partSize * offsetRadius));
+                itemY = (int) (centerY - Math.cos(Math.toRadians(angle)) * (circleMenuRadius - (1 - fraction) * partSize * offsetRadius));
                 oPaint.setColor(calcAlphaColor(menuColors[i + 1], false));
             } else if (status == STATUS_MENU_CANCEL) {
-                itemX = (int) (centerX + Math.sin(Math.toRadians(angle)) * (circleMenuRadius -  fraction * PART_SIZE * offsetRadius));
-                itemY = (int) (centerY - Math.cos(Math.toRadians(angle)) * (circleMenuRadius -  fraction * PART_SIZE * offsetRadius));
+                itemX = (int) (centerX + Math.sin(Math.toRadians(angle)) * (circleMenuRadius -  fraction * partSize * offsetRadius));
+                itemY = (int) (centerY - Math.cos(Math.toRadians(angle)) * (circleMenuRadius -  fraction * partSize * offsetRadius));
                 oPaint.setColor(calcAlphaColor(menuColors[i + 1], true));
             } else {
                 itemX = (int) (centerX + Math.sin(Math.toRadians(angle)) * circleMenuRadius);
@@ -212,8 +215,9 @@ public class CircleMenu extends View {
             if (pressed && clickIndex - 1 == i) {
                 oPaint.setColor(pressedColor);
             }
+            drawMenuShadow(canvas, itemX, itemY);
             canvas.drawCircle(itemX, itemY, itemMenuRadius, oPaint);
-            menuRectFs[i + 1].set(itemX - PART_SIZE, itemY - PART_SIZE, itemX + PART_SIZE, itemY + PART_SIZE);
+            menuRectFs[i + 1].set(itemX - partSize, itemY - partSize, itemX + partSize, itemY + partSize);
         }
     }
 
@@ -224,13 +228,13 @@ public class CircleMenu extends View {
     private void drawCenterMenu(Canvas canvas) {
         float centerMenuRadius;
         if (status == STATUS_MENU_CLOSE) {
-            centerMenuRadius = PART_SIZE * (1 - fraction);
+            centerMenuRadius = partSize * (1 - fraction);
         } else if (status == STATUS_MENU_CLOSE_CLEAR) {
-            centerMenuRadius = PART_SIZE * fraction;
+            centerMenuRadius = partSize * fraction;
         } else if (status == STATUS_MENU_CLOSED || status == STATUS_MENU_CANCEL) {
-            centerMenuRadius = PART_SIZE;
+            centerMenuRadius = partSize;
         } else {
-            centerMenuRadius = PART_SIZE;
+            centerMenuRadius = partSize;
         }
         if (pressed && clickIndex == 0) {
             oPaint.setColor(pressedColor);
@@ -238,24 +242,21 @@ public class CircleMenu extends View {
             oPaint.setColor(menuColors[0]);
         }
 
-
-//        Bitmap bitmap = Bitmap.createBitmap(PART_SIZE * 2, PART_SIZE * 2, Bitmap.Config.ARGB_8888);
-//        bitmap.eraseColor(0x0);
-//        int colors[] = {ColorUtils.setAlphaComponent(0xff000000, 24),
-//                ColorUtils.setAlphaComponent(0xff000000, 0)};
-//        float stops[] = {.5f, 1.f};
-//        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-//        paint.setShader(new RadialGradient(centerX, centerY, PART_SIZE + 20, colors, stops, Shader.TileMode.CLAMP));
-//        Canvas ShadowCanvas = new Canvas(bitmap);
-//        ShadowCanvas.drawRect(0, 0, PART_SIZE * 2, PART_SIZE * 2, paint);
-//        canvas.drawBitmap(bitmap, 0, 0 ,paint);
-//
-//        shadowMatrix.reset();
-//        shadowMatrix.postTranslate(PART_SIZE, PART_SIZE);
-//        paint.setAlpha(255);
-//        canvas.drawBitmap(bitmap, shadowMatrix, paint);
+        drawMenuShadow(canvas, centerX, centerY);
         canvas.drawCircle(centerX, centerY, centerMenuRadius, oPaint);
 
+    }
+
+    /**
+     * 绘制菜单按钮阴影
+     * @param canvas
+     * @param centerX
+     * @param centerY
+     */
+    private void drawMenuShadow(Canvas canvas, float centerX, float centerY) {
+        sPaint.setShader(new RadialGradient(centerX, centerY, partSize + shadowRadius,
+                Color.BLACK, Color.TRANSPARENT, Shader.TileMode.CLAMP));
+        canvas.drawCircle(centerX, centerY, partSize + shadowRadius, sPaint);
     }
 
     @Override
@@ -359,7 +360,7 @@ public class CircleMenu extends View {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
                 fraction = valueAnimator.getAnimatedFraction();
-                itemMenuRadius = fraction * PART_SIZE;
+                itemMenuRadius = fraction * partSize;
                 invalidate();
             }
         });
@@ -383,7 +384,7 @@ public class CircleMenu extends View {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
                 fraction = valueAnimator.getAnimatedFraction();
-                itemMenuRadius = (1 - fraction) * PART_SIZE;
+                itemMenuRadius = (1 - fraction) * partSize;
                 invalidate();
             }
         });
@@ -439,6 +440,13 @@ public class CircleMenu extends View {
         animatorSet.start();
     }
 
+    /**
+     * 获取当前点击的是哪一个菜单按钮 <br/>
+     * 中心菜单下标为0，周围菜单从正上方顺时针计数1~5
+     * @param x
+     * @param y
+     * @return
+     */
     private int clickWhichRectF(float x, float y) {
         int which = -1;
         for (int i = 0; i < menuRectFs.length; i++) {
