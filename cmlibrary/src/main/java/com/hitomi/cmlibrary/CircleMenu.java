@@ -43,7 +43,7 @@ public class CircleMenu extends View {
     private final int partSize = dip2Px(20);
 
     private final int[] menuColors = new int[] {
-            Color.parseColor("#C0C0C0"),
+            Color.parseColor("#000000"),
             Color.parseColor("#258CFF"),
             Color.parseColor("#30A400"),
             Color.parseColor("#FF4B32"),
@@ -203,19 +203,22 @@ public class CircleMenu extends View {
                 itemX = (int) (centerX + Math.sin(Math.toRadians(angle)) * (circleMenuRadius - (1 - fraction) * partSize * offsetRadius));
                 itemY = (int) (centerY - Math.cos(Math.toRadians(angle)) * (circleMenuRadius - (1 - fraction) * partSize * offsetRadius));
                 oPaint.setColor(calcAlphaColor(menuColors[i + 1], false));
+                sPaint.setColor(calcAlphaColor(menuColors[i + 1], false));
             } else if (status == STATUS_MENU_CANCEL) {
                 itemX = (int) (centerX + Math.sin(Math.toRadians(angle)) * (circleMenuRadius -  fraction * partSize * offsetRadius));
                 itemY = (int) (centerY - Math.cos(Math.toRadians(angle)) * (circleMenuRadius -  fraction * partSize * offsetRadius));
                 oPaint.setColor(calcAlphaColor(menuColors[i + 1], true));
+                sPaint.setColor(calcAlphaColor(menuColors[i + 1], true));
             } else {
                 itemX = (int) (centerX + Math.sin(Math.toRadians(angle)) * circleMenuRadius);
                 itemY = (int) (centerY - Math.cos(Math.toRadians(angle)) * circleMenuRadius);
                 oPaint.setColor(menuColors[i + 1]);
+                sPaint.setColor(menuColors[i + 1]);
             }
             if (pressed && clickIndex - 1 == i) {
                 oPaint.setColor(pressedColor);
             }
-            drawMenuShadow(canvas, itemX, itemY);
+            drawMenuShadow(canvas, itemX, itemY, itemMenuRadius);
             canvas.drawCircle(itemX, itemY, itemMenuRadius, oPaint);
             menuRectFs[i + 1].set(itemX - partSize, itemY - partSize, itemX + partSize, itemY + partSize);
         }
@@ -240,11 +243,10 @@ public class CircleMenu extends View {
             oPaint.setColor(pressedColor);
         } else {
             oPaint.setColor(menuColors[0]);
+            sPaint.setColor(menuColors[0]);
         }
-
-        drawMenuShadow(canvas, centerX, centerY);
+        drawMenuShadow(canvas, centerX, centerY, centerMenuRadius);
         canvas.drawCircle(centerX, centerY, centerMenuRadius, oPaint);
-
     }
 
     /**
@@ -253,10 +255,10 @@ public class CircleMenu extends View {
      * @param centerX
      * @param centerY
      */
-    private void drawMenuShadow(Canvas canvas, float centerX, float centerY) {
-        sPaint.setShader(new RadialGradient(centerX, centerY, partSize + shadowRadius,
+    private void drawMenuShadow(Canvas canvas, float centerX, float centerY, float radius) {
+        sPaint.setShader(new RadialGradient(centerX, centerY, radius + shadowRadius,
                 Color.BLACK, Color.TRANSPARENT, Shader.TileMode.CLAMP));
-        canvas.drawCircle(centerX, centerY, partSize + shadowRadius, sPaint);
+        canvas.drawCircle(centerX, centerY, radius + shadowRadius, sPaint);
     }
 
     @Override
@@ -310,7 +312,7 @@ public class CircleMenu extends View {
      */
     private void updatePressEffect(int menuIndex, boolean press) {
         if (press) {
-            pressedColor = getPressedEffectColor(menuIndex);
+            pressedColor = calcPressedEffectColor(menuIndex);
         }
         invalidate();
     }
@@ -320,7 +322,7 @@ public class CircleMenu extends View {
      * @param menuIndex
      * @return
      */
-    private int getPressedEffectColor(int menuIndex) {
+    private int calcPressedEffectColor(int menuIndex) {
         int color;
         color = menuColors[menuIndex];
         float[] hsv = new float[3];
