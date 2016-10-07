@@ -53,7 +53,7 @@ Activity 中：
 # Thanks
 
    原型设计来源于 [dribbble](https://dribbble.com/shots/2534780-Circle-Menu-Swift-Open-Source)
-
+   IOS版本 [Ramotion](https://github.com/Ramotion/circle-menu)
 #Licence
 
 MIT
