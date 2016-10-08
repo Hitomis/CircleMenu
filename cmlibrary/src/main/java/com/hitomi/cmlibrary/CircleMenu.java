@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -13,12 +14,14 @@ import android.graphics.PathMeasure;
 import android.graphics.RadialGradient;
 import android.graphics.RectF;
 import android.graphics.Shader;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.support.v4.graphics.ColorUtils;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.DecelerateInterpolator;
+import android.view.animation.AnticipateInterpolator;
 import android.view.animation.OvershootInterpolator;
 
 /**
@@ -40,10 +43,12 @@ public class CircleMenu extends View {
 
     private static final int ITEM_NUM = 5;
 
-    private final int partSize = dip2Px(20);
+    private final int partSize = dip2px(20);
+
+    private final int iconSize = partSize * 4 / 5;
 
     private final int[] menuColors = new int[] {
-            Color.parseColor("#000000"),
+            Color.parseColor("#ACACAC"),
             Color.parseColor("#258CFF"),
             Color.parseColor("#30A400"),
             Color.parseColor("#FF4B32"),
@@ -53,19 +58,21 @@ public class CircleMenu extends View {
 
     private final float circleMenuRadius = partSize * 3;
 
-    private final int shadowRadius = 6;
+    private final int shadowRadius = 5;
 
     private float itemMenuRadius;
-
-    private float centerX, centerY;
 
     private float fraction;
 
     private float pathLength;
 
+    private int centerX, centerY;
+
     private int clickIndex;
 
     private int rotateAngle;
+
+    private int itemIconSize;
 
     private int pressedColor;
 
@@ -74,6 +81,10 @@ public class CircleMenu extends View {
     private boolean pressed;
 
     private RectF[] menuRectFs = new RectF[ITEM_NUM + 1];
+
+    private Drawable[] iconDrawables = new Drawable[ITEM_NUM];
+
+    private Drawable openMenuIcon, closeMenuIcon;
 
     private Paint oPaint, cPaint, sPaint;
 
@@ -91,12 +102,24 @@ public class CircleMenu extends View {
 
     public CircleMenu(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        setLayerType(LAYER_TYPE_SOFTWARE, null);
         status = STATUS_MENU_CLOSED;
         init();
     }
 
     private void init() {
+        initTool();
+
+        centerX = partSize * 5  ;
+        centerY = centerX;
+
+        path.addCircle(centerX, centerY, circleMenuRadius, Path.Direction.CW);
+        pathMeasure.setPath(path, true);
+        pathLength = pathMeasure.getLength();
+
+        menuRectFs[0].set(centerX - partSize, centerY - partSize, centerX + partSize, centerY + partSize);
+    }
+
+    private void initTool() {
         oPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         oPaint.setStyle(Paint.Style.FILL_AND_STROKE);
 
@@ -123,48 +146,33 @@ public class CircleMenu extends View {
     }
 
     @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-
-        centerX = getMeasuredWidth() / 2;
-        centerY = centerX;
-
-        path.addCircle(centerX, centerY, circleMenuRadius, Path.Direction.CW);
-        pathMeasure.setPath(path, true);
-        pathLength = pathMeasure.getLength();
-
-        menuRectFs[0].set(centerX - partSize, centerY - partSize, centerX + partSize, centerY + partSize);
-    }
-
-    @Override
     protected void onDraw(Canvas canvas) {
         switch (status) {
             case STATUS_MENU_CLOSED:
-                drawCenterMenu(canvas);
+                drawMainMenu(canvas);
                 break;
             case STATUS_MENU_OPEN:
-                drawCenterMenu(canvas);
-                drawAroundMenu(canvas);
+                drawMainMenu(canvas);
+                drawSubMenu(canvas);
                 break;
             case STATUS_MENU_OPENED:
-                drawCenterMenu(canvas);
-                drawAroundMenu(canvas);
+                drawMainMenu(canvas);
+                drawSubMenu(canvas);
                 break;
             case STATUS_MENU_CLOSE:
-                drawCenterMenu(canvas);
-                drawAroundMenu(canvas);
+                drawMainMenu(canvas);
+                drawSubMenu(canvas);
                 drawCircleMenu(canvas);
                 break;
             case STATUS_MENU_CLOSE_CLEAR:
-                drawCenterMenu(canvas);
+                drawMainMenu(canvas);
                 drawCircleMenu(canvas);
                 break;
             case STATUS_MENU_CANCEL:
-                drawCenterMenu(canvas);
-                drawAroundMenu(canvas);
+                drawMainMenu(canvas);
+                drawSubMenu(canvas);
                 break;
         }
-
     }
 
     /**
@@ -172,21 +180,46 @@ public class CircleMenu extends View {
      * @param canvas
      */
     private void drawCircleMenu(Canvas canvas) {
-        canvas.save();
         if (status == STATUS_MENU_CLOSE) {
-            canvas.rotate(rotateAngle, centerX, centerY);
-            dstPath.reset();
-            dstPath.lineTo(0, 0);
-            pathMeasure.getSegment(0, pathLength * fraction, dstPath, true);
-            cPaint.setStrokeWidth(partSize * 2);
-            cPaint.setColor(menuColors[clickIndex]);
-            canvas.drawPath(dstPath, cPaint);
+            drawCirclePath(canvas);
+            drawCircleIcon(canvas);
          } else {
             cPaint.setStrokeWidth(partSize * 2 + partSize * .5f * fraction);
             cPaint.setColor(calcAlphaColor(menuColors[clickIndex], true));
             canvas.drawCircle(centerX, centerY, circleMenuRadius + partSize * .5f * fraction, cPaint);
         }
+    }
 
+    /**
+     * 绘制子菜单转动时的图标
+     * @param canvas
+     */
+    private void drawCircleIcon(Canvas canvas) {
+        canvas.save();
+        Drawable selDrawable = iconDrawables[clickIndex - 1];
+        int startAngle = (clickIndex - 1) * (360 / ITEM_NUM);
+        int endAngle = 360 + startAngle;
+        int itemX = (int) (centerX + Math.sin(Math.toRadians((endAngle - startAngle) * fraction + startAngle)) * circleMenuRadius);
+        int itemY = (int) (centerY - Math.cos(Math.toRadians((endAngle - startAngle) * fraction + startAngle)) * circleMenuRadius);
+        canvas.rotate(360 * fraction, itemX, itemY);
+        selDrawable.setBounds(itemX - iconSize / 2, itemY - iconSize / 2, itemX + iconSize / 2, itemY + iconSize / 2);
+        selDrawable.draw(canvas);
+        canvas.restore();
+    }
+
+    /**
+     * 绘制子菜单项转动时的轨迹路径
+     * @param canvas
+     */
+    private void drawCirclePath(Canvas canvas) {
+        canvas.save();
+        canvas.rotate(rotateAngle, centerX, centerY);
+        dstPath.reset();
+        dstPath.lineTo(0, 0);
+        pathMeasure.getSegment(0, pathLength * fraction, dstPath, true);
+        cPaint.setStrokeWidth(partSize * 2);
+        cPaint.setColor(menuColors[clickIndex]);
+        canvas.drawPath(dstPath, cPaint);
         canvas.restore();
     }
 
@@ -194,7 +227,7 @@ public class CircleMenu extends View {
      * 绘制周围子菜单项按钮
      * @param canvas
      */
-    private void drawAroundMenu(Canvas canvas) {
+    private void drawSubMenu(Canvas canvas) {
         int itemX, itemY, angle;
         final float offsetRadius = 1.5f;
         for (int i = 0; i < ITEM_NUM; i++) {
@@ -220,15 +253,39 @@ public class CircleMenu extends View {
             }
             drawMenuShadow(canvas, itemX, itemY, itemMenuRadius);
             canvas.drawCircle(itemX, itemY, itemMenuRadius, oPaint);
+            resetBoundsAndDrawIcon(canvas, iconDrawables[i], itemX, itemY, itemIconSize / 2);
+            drawSubMenuIcon(canvas, itemX, itemY, i);
             menuRectFs[i + 1].set(itemX - partSize, itemY - partSize, itemX + partSize, itemY + partSize);
         }
+    }
+
+    /**
+     * 绘制子菜单项图标
+     * @param canvas
+     * @param centerX
+     * @param centerY
+     * @param index
+     */
+    private void drawSubMenuIcon(Canvas canvas, int centerX, int centerY, int index) {
+        int diff;
+        if (status == STATUS_MENU_OPEN) {
+            diff = itemIconSize / 2;
+        } else {
+            diff = iconSize / 2;
+        }
+        resetBoundsAndDrawIcon(canvas, iconDrawables[index], centerX, centerY, diff);
+    }
+
+    private void resetBoundsAndDrawIcon(Canvas canvas, Drawable drawable, int centerX, int centerY, int diff) {
+        drawable.setBounds(centerX - diff, centerY - diff, centerX + diff, centerY + diff);
+        drawable.draw(canvas);
     }
 
     /**
      * 绘制中间的菜单开关按钮
      * @param canvas
      */
-    private void drawCenterMenu(Canvas canvas) {
+    private void drawMainMenu(Canvas canvas) {
         float centerMenuRadius;
         if (status == STATUS_MENU_CLOSE) {
             centerMenuRadius = partSize * (1 - fraction);
@@ -247,6 +304,35 @@ public class CircleMenu extends View {
         }
         drawMenuShadow(canvas, centerX, centerY, centerMenuRadius);
         canvas.drawCircle(centerX, centerY, centerMenuRadius, oPaint);
+        drawMainMenuIcon(canvas);
+    }
+
+    private void drawMainMenuIcon(Canvas canvas) {
+        canvas.save();
+        switch (status) {
+            case STATUS_MENU_CLOSED:
+                openMenuIcon.draw(canvas);
+                break;
+            case STATUS_MENU_OPEN:
+                canvas.rotate(45 * (fraction - 1), centerX, centerY);
+                resetBoundsAndDrawIcon(canvas, closeMenuIcon, centerX, centerY, iconSize / 2);
+                break;
+            case STATUS_MENU_OPENED:
+                resetBoundsAndDrawIcon(canvas, closeMenuIcon, centerX, centerY, iconSize / 2);
+                break;
+            case STATUS_MENU_CLOSE:
+                resetBoundsAndDrawIcon(canvas, closeMenuIcon, centerX, centerY, itemIconSize / 2);
+                break;
+            case STATUS_MENU_CLOSE_CLEAR:
+                canvas.rotate(90 * (fraction - 1), centerX, centerY);
+                resetBoundsAndDrawIcon(canvas, openMenuIcon, centerX, centerY, itemIconSize / 2);
+                break;
+            case STATUS_MENU_CANCEL:
+                canvas.rotate(-45 * fraction, centerX, centerY);
+                closeMenuIcon.draw(canvas);
+                break;
+        }
+        canvas.restore();
     }
 
     /**
@@ -255,10 +341,12 @@ public class CircleMenu extends View {
      * @param centerX
      * @param centerY
      */
-    private void drawMenuShadow(Canvas canvas, float centerX, float centerY, float radius) {
-        sPaint.setShader(new RadialGradient(centerX, centerY, radius + shadowRadius,
-                Color.BLACK, Color.TRANSPARENT, Shader.TileMode.CLAMP));
-        canvas.drawCircle(centerX, centerY, radius + shadowRadius, sPaint);
+    private void drawMenuShadow(Canvas canvas, int centerX, int centerY, float radius) {
+        if (radius + shadowRadius > 0) {
+            sPaint.setShader(new RadialGradient(centerX, centerY, radius + shadowRadius,
+                    Color.BLACK, Color.TRANSPARENT, Shader.TileMode.CLAMP));
+            canvas.drawCircle(centerX, centerY, radius + shadowRadius, sPaint);
+        }
     }
 
     @Override
@@ -363,6 +451,7 @@ public class CircleMenu extends View {
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
                 fraction = valueAnimator.getAnimatedFraction();
                 itemMenuRadius = fraction * partSize;
+                itemIconSize = (int) (fraction * iconSize);
                 invalidate();
             }
         });
@@ -381,12 +470,13 @@ public class CircleMenu extends View {
     private void startCancelMenuAnima() {
         ValueAnimator cancelAnima = ValueAnimator.ofFloat(1.f, 100.f);
         cancelAnima.setDuration(500);
-        cancelAnima.setInterpolator(new OvershootInterpolator());
+        cancelAnima.setInterpolator(new AnticipateInterpolator());
         cancelAnima.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
                 fraction = valueAnimator.getAnimatedFraction();
                 itemMenuRadius = (1 - fraction) * partSize;
+                itemIconSize = (int) ((1 - fraction) * iconSize);
                 invalidate();
             }
         });
@@ -400,7 +490,9 @@ public class CircleMenu extends View {
     }
 
     /**
-     * 开启关闭菜单动画
+     * 开启关闭菜单动画 </br>
+     *
+     *
      */
     private void startCloseMeunAnima() {
         ValueAnimator closeAnima = ValueAnimator.ofFloat(1.f, 100.f);
@@ -410,6 +502,7 @@ public class CircleMenu extends View {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
                 fraction = valueAnimator.getAnimatedFraction();
+                itemIconSize = (int) ((1 - fraction) * iconSize);
                 invalidate();
             }
         });
@@ -421,12 +514,13 @@ public class CircleMenu extends View {
         });
 
         ValueAnimator clearAnima = ValueAnimator.ofFloat(1.f, 100.f);
-        clearAnima.setDuration(600);
-        clearAnima.setInterpolator(new DecelerateInterpolator());
+        clearAnima.setDuration(500);
+        clearAnima.setInterpolator(new OvershootInterpolator());
         clearAnima.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
                 fraction = valueAnimator.getAnimatedFraction();
+                itemIconSize = (int) (fraction * iconSize);
                 invalidate();
             }
         });
@@ -460,7 +554,79 @@ public class CircleMenu extends View {
         return which;
     }
 
-    public int dip2Px(float dpValue) {
+    private Drawable convertDrawable(int iconRes) {
+        return getResources().getDrawable(iconRes);
+    }
+
+    private void resetMainDrawableBounds() {
+        openMenuIcon.setBounds(centerX - iconSize / 2, centerY - iconSize / 2,
+                centerX + iconSize / 2, centerY + iconSize / 2);
+        closeMenuIcon.setBounds(centerX - iconSize / 2, centerY - iconSize / 2,
+                centerX + iconSize / 2, centerY + iconSize / 2);
+    }
+
+    /**
+     * 以 Resource 格式，设置打开/关闭菜单图标
+     * @param openRes
+     * @param closeRes
+     */
+    public void setMainIconResource(int openRes, int closeRes) {
+        openMenuIcon = convertDrawable(openRes);
+        closeMenuIcon = convertDrawable(closeRes);
+        resetMainDrawableBounds();
+    }
+
+    /**
+     * 以 Bitmap 格式，设置打开/关闭菜单图标
+     * @param openBitmap
+     * @param closeBitmap
+     */
+    public void setMainIconBitmap(Bitmap openBitmap, Bitmap closeBitmap) {
+        openMenuIcon = new BitmapDrawable(getResources(), openBitmap);
+        closeMenuIcon = new BitmapDrawable(getResources(), closeBitmap);
+        resetMainDrawableBounds();
+    }
+
+    /**
+     * 以 Drawable 格式，设置打开/关闭菜单图标
+     * @param openDrawable
+     * @param closeDrawable
+     */
+    public void setMainIconDrawable(Drawable openDrawable, Drawable closeDrawable) {
+        openMenuIcon = openDrawable;
+        closeMenuIcon = closeDrawable;
+        resetMainDrawableBounds();
+    }
+
+    /**
+     * 设置一组 Resource 格式的图标
+     * @param iconResources
+     */
+    public void setSubIconResources(int[] iconResources) {
+        for (int i = 0; i < iconResources.length; i++) {
+            iconDrawables[i] = convertDrawable(iconResources[i]);
+        }
+    }
+
+    /**
+     * 设置一组 Bitmap 格式的图标
+     * @param bitmaps
+     */
+    public void setSubIconBitmaps(Bitmap[] bitmaps) {
+        for (int i = 0; i < bitmaps.length; i++) {
+            iconDrawables[i] = new BitmapDrawable(getResources(), bitmaps[i]);
+        }
+    }
+
+    /**
+     * 设置一组 Drawable 格式的图标
+     * @param drawables
+     */
+    public void setSubIconDrawables(Drawable[] drawables) {
+        iconDrawables = drawables;
+    }
+
+    public int dip2px(float dpValue) {
         final float scale = getContext().getResources().getDisplayMetrics().density;
         return (int) (dpValue * scale + 0.5f);
     }
