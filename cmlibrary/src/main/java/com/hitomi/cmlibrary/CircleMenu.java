@@ -286,13 +286,15 @@ public class CircleMenu extends View {
      * @param canvas
      */
     private void drawMainMenu(Canvas canvas) {
-        float centerMenuRadius;
+        float centerMenuRadius, realFraction;
         if (status == STATUS_MENU_CLOSE) {
             // 中心主菜单按钮以两倍速度缩小
-            float realFraction = (1 - fraction * 2) == 0 ? 0 : (1 - fraction * 2);
+            realFraction = (1 - fraction * 2) == 0 ? 0 : (1 - fraction * 2);
             centerMenuRadius = partSize * realFraction;
         } else if (status == STATUS_MENU_CLOSE_CLEAR) {
-            centerMenuRadius = partSize * fraction;
+            // 中心主菜单按钮以四倍速度扩大
+            realFraction = fraction * 4 >= 1 ? 1 : fraction * 4;
+            centerMenuRadius = partSize * realFraction;
         } else if (status == STATUS_MENU_CLOSED || status == STATUS_MENU_CANCEL) {
             centerMenuRadius = partSize;
         } else {
@@ -500,7 +502,7 @@ public class CircleMenu extends View {
      * <ur>
      *     <li>选中菜单项转动一周</li>
      *     <li>环状轨迹扩散消失</li>
-     *     <li>主菜单旋转</li>
+     *     <li>主菜单按钮旋转</li>
      * </ur>
      *
      */
@@ -547,16 +549,17 @@ public class CircleMenu extends View {
                 invalidate();
             }
         });
-        rotateAnima.addListener(new AnimatorListenerAdapter() {
+
+        AnimatorSet closeAnimaSet = new AnimatorSet();
+        closeAnimaSet.setDuration(500);
+        closeAnimaSet.play(spreadAnima).with(rotateAnima);
+        closeAnimaSet.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
                 status = STATUS_MENU_CLOSED;
             }
         });
 
-        AnimatorSet closeAnimaSet = new AnimatorSet();
-        closeAnimaSet.setDuration(500);
-        closeAnimaSet.play(spreadAnima).with(rotateAnima);
         AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.play(aroundAnima).before(closeAnimaSet);
         animatorSet.start();
