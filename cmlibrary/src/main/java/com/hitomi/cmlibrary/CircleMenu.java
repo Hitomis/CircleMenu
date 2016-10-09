@@ -48,15 +48,6 @@ public class CircleMenu extends View {
 
     private final int iconSize = partSize * 4 / 5;
 
-    private final int[] menuColors = new int[] {
-            Color.parseColor("#CDCDCD"),
-            Color.parseColor("#258CFF"),
-            Color.parseColor("#30A400"),
-            Color.parseColor("#FF4B32"),
-            Color.parseColor("#8A39FF"),
-            Color.parseColor("#FF6A00")
-    };
-
     private final float circleMenuRadius = partSize * 3;
 
     private final int shadowRadius = 5;
@@ -66,6 +57,15 @@ public class CircleMenu extends View {
     private float fraction, rFraction;
 
     private float pathLength;
+
+    private int[] menuColors = new int[] {
+            Color.parseColor("#CDCDCD"),
+            Color.parseColor("#258CFF"),
+            Color.parseColor("#30A400"),
+            Color.parseColor("#FF4B32"),
+            Color.parseColor("#8A39FF"),
+            Color.parseColor("#FF6A00")
+    };
 
     private int centerX, centerY;
 
@@ -628,7 +628,7 @@ public class CircleMenu extends View {
     }
 
     /**
-     * 设置一组 Resource 格式的图标
+     * 设置一组 Resource 格式的子菜单项图标
      * @param iconResources
      */
     public void setSubIconResources(int[] iconResources) {
@@ -638,7 +638,7 @@ public class CircleMenu extends View {
     }
 
     /**
-     * 设置一组 Bitmap 格式的图标
+     * 设置一组 Bitmap 格式的子菜单项图标
      * @param bitmaps
      */
     public void setSubIconBitmaps(Bitmap[] bitmaps) {
@@ -648,11 +648,19 @@ public class CircleMenu extends View {
     }
 
     /**
-     * 设置一组 Drawable 格式的图标
+     * 设置一组 Drawable 格式的子菜单项图标
      * @param drawables
      */
     public void setSubIconDrawables(Drawable[] drawables) {
         iconDrawables = drawables;
+    }
+
+    /**
+     * 设置一组菜单的颜色，中心主菜单按钮颜色下标为0, 正上方子菜单按钮颜色下标为1，顺时针依次下标累加1
+     * @param menuColors
+     */
+    public void setMenuColors(int[] menuColors) {
+        this.menuColors = menuColors;
     }
 
     public int dip2px(float dpValue) {
