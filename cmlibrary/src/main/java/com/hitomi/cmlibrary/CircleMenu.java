@@ -27,6 +27,10 @@ import android.view.animation.OvershootInterpolator;
 
 /**
  * Created by hitomi on 2016/9/28.
+ *
+ * github : https://github.com/Hitomis <br/>
+ *
+ * email : 196425254@qq.com
  */
 public class CircleMenu extends View {
 
