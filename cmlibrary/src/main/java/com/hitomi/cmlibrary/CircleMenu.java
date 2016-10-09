@@ -93,6 +93,10 @@ public class CircleMenu extends View {
 
     private Path path, dstPath;
 
+    private OnMenuSelectedListener onMenuSelectedListener;
+
+    private OnMenuStatusChangeListener onMenuStatusChangeListener;
+
     public CircleMenu(Context context) {
         this(context, null);
     }
@@ -390,6 +394,8 @@ public class CircleMenu extends View {
                 } else { // 点击的是周围子菜单项按钮
                     if (status == STATUS_MENU_OPENED && index != -1) {
                         status = STATUS_MENU_CLOSE;
+                        if (onMenuSelectedListener != null)
+                            onMenuSelectedListener.onMenuSelected(index - 1);
                         rotateAngle = clickIndex * (360 / ITEM_NUM) -  (360 / ITEM_NUM) - 90 ;
                         startCloseMeunAnima();
                     }
@@ -466,6 +472,8 @@ public class CircleMenu extends View {
             @Override
             public void onAnimationEnd(Animator animation) {
                 status = STATUS_MENU_OPENED;
+                if (onMenuStatusChangeListener != null)
+                    onMenuStatusChangeListener.onMenuOpened();
             }
         });
         openAnima.start();
@@ -491,6 +499,8 @@ public class CircleMenu extends View {
             @Override
             public void onAnimationEnd(Animator animation) {
                 status = STATUS_MENU_CLOSED;
+                if (onMenuStatusChangeListener != null)
+                    onMenuStatusChangeListener.onMenuClosed();
             }
         });
         cancelAnima.start();
@@ -557,6 +567,8 @@ public class CircleMenu extends View {
             @Override
             public void onAnimationEnd(Animator animation) {
                 status = STATUS_MENU_CLOSED;
+                if (onMenuStatusChangeListener != null)
+                    onMenuStatusChangeListener.onMenuClosed();
             }
         });
 
@@ -661,6 +673,14 @@ public class CircleMenu extends View {
      */
     public void setMenuColors(int[] menuColors) {
         this.menuColors = menuColors;
+    }
+
+    public void setOnMenuSelectedListener(OnMenuSelectedListener listener) {
+        this.onMenuSelectedListener = listener;
+    }
+
+    public void setOnMenuStatusChangeListener(OnMenuStatusChangeListener listener) {
+        this.onMenuStatusChangeListener = listener;
     }
 
     public int dip2px(float dpValue) {

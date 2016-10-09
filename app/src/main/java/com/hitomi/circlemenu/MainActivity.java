@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
 import com.hitomi.cmlibrary.CircleMenu;
+import com.hitomi.cmlibrary.OnMenuSelectedListener;
+import com.hitomi.cmlibrary.OnMenuStatusChangeListener;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -27,5 +29,21 @@ public class MainActivity extends AppCompatActivity {
         circleMenu = (CircleMenu) findViewById(R.id.circle_menu);
         circleMenu.setMainIconResource(R.mipmap.icon_menu, R.mipmap.icon_cancel);
         circleMenu.setSubIconResources(iconResArray);
+
+        circleMenu.setOnMenuSelectedListener(new OnMenuSelectedListener() {
+            @Override
+            public void onMenuSelected(int index) {
+            }
+        });
+
+        circleMenu.setOnMenuStatusChangeListener(new OnMenuStatusChangeListener() {
+            @Override
+            public void onMenuOpened() {
+            }
+
+            @Override
+            public void onMenuClosed() {
+            }
+        });
     }
 }
