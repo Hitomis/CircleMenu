@@ -22,6 +22,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AnticipateInterpolator;
+import android.view.animation.LinearInterpolator;
 import android.view.animation.OvershootInterpolator;
 
 /**
@@ -48,7 +49,7 @@ public class CircleMenu extends View {
     private final int iconSize = partSize * 4 / 5;
 
     private final int[] menuColors = new int[] {
-            Color.parseColor("#ACACAC"),
+            Color.parseColor("#CDCDCD"),
             Color.parseColor("#258CFF"),
             Color.parseColor("#30A400"),
             Color.parseColor("#FF4B32"),
@@ -62,7 +63,7 @@ public class CircleMenu extends View {
 
     private float itemMenuRadius;
 
-    private float fraction;
+    private float fraction, rFraction;
 
     private float pathLength;
 
@@ -253,7 +254,6 @@ public class CircleMenu extends View {
             }
             drawMenuShadow(canvas, itemX, itemY, itemMenuRadius);
             canvas.drawCircle(itemX, itemY, itemMenuRadius, oPaint);
-            resetBoundsAndDrawIcon(canvas, iconDrawables[i], itemX, itemY, itemIconSize / 2);
             drawSubMenuIcon(canvas, itemX, itemY, i);
             menuRectFs[i + 1].set(itemX - partSize, itemY - partSize, itemX + partSize, itemY + partSize);
         }
@@ -268,7 +268,7 @@ public class CircleMenu extends View {
      */
     private void drawSubMenuIcon(Canvas canvas, int centerX, int centerY, int index) {
         int diff;
-        if (status == STATUS_MENU_OPEN) {
+        if (status == STATUS_MENU_OPEN || status == STATUS_MENU_CANCEL) {
             diff = itemIconSize / 2;
         } else {
             diff = iconSize / 2;
@@ -288,7 +288,9 @@ public class CircleMenu extends View {
     private void drawMainMenu(Canvas canvas) {
         float centerMenuRadius;
         if (status == STATUS_MENU_CLOSE) {
-            centerMenuRadius = partSize * (1 - fraction);
+            // 中心主菜单按钮以两倍速度缩小
+            float realFraction = (1 - fraction * 2) == 0 ? 0 : (1 - fraction * 2);
+            centerMenuRadius = partSize * realFraction;
         } else if (status == STATUS_MENU_CLOSE_CLEAR) {
             centerMenuRadius = partSize * fraction;
         } else if (status == STATUS_MENU_CLOSED || status == STATUS_MENU_CANCEL) {
@@ -296,7 +298,9 @@ public class CircleMenu extends View {
         } else {
             centerMenuRadius = partSize;
         }
-        if (pressed && clickIndex == 0) {
+        if (status == STATUS_MENU_OPEN || status == STATUS_MENU_OPENED || status == STATUS_MENU_CLOSE) {
+            oPaint.setColor(calcPressedEffectColor(0, .5f));
+        } else if (pressed && clickIndex == 0) {
             oPaint.setColor(pressedColor);
         } else {
             oPaint.setColor(menuColors[0]);
@@ -324,7 +328,7 @@ public class CircleMenu extends View {
                 resetBoundsAndDrawIcon(canvas, closeMenuIcon, centerX, centerY, itemIconSize / 2);
                 break;
             case STATUS_MENU_CLOSE_CLEAR:
-                canvas.rotate(90 * (fraction - 1), centerX, centerY);
+                canvas.rotate(90 * (rFraction - 1), centerX, centerY);
                 resetBoundsAndDrawIcon(canvas, openMenuIcon, centerX, centerY, itemIconSize / 2);
                 break;
             case STATUS_MENU_CANCEL:
@@ -400,7 +404,7 @@ public class CircleMenu extends View {
      */
     private void updatePressEffect(int menuIndex, boolean press) {
         if (press) {
-            pressedColor = calcPressedEffectColor(menuIndex);
+            pressedColor = calcPressedEffectColor(menuIndex, .15f);
         }
         invalidate();
     }
@@ -408,14 +412,15 @@ public class CircleMenu extends View {
     /**
      * 获取按钮被按下的颜色
      * @param menuIndex
+     * @param depth 取值范围为[0, 1].值越大，颜色越深
      * @return
      */
-    private int calcPressedEffectColor(int menuIndex) {
+    private int calcPressedEffectColor(int menuIndex, float depth) {
         int color;
         color = menuColors[menuIndex];
         float[] hsv = new float[3];
         Color.colorToHSV(color, hsv);
-        hsv[2] *= 0.9f;
+        hsv[2] *= (1.f - depth);
         return Color.HSVToColor(hsv);
     }
 
@@ -491,48 +496,69 @@ public class CircleMenu extends View {
 
     /**
      * 开启关闭菜单动画 </br>
-     *
+     * <p>关闭菜单动画分为三部分</p>
+     * <ur>
+     *     <li>选中菜单项转动一周</li>
+     *     <li>环状轨迹扩散消失</li>
+     *     <li>主菜单旋转</li>
+     * </ur>
      *
      */
     private void startCloseMeunAnima() {
-        ValueAnimator closeAnima = ValueAnimator.ofFloat(1.f, 100.f);
-        closeAnima.setDuration(500);
-        closeAnima.setInterpolator(new AccelerateDecelerateInterpolator());
-        closeAnima.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        // 选中菜单项转动一周动画驱动
+        ValueAnimator aroundAnima = ValueAnimator.ofFloat(1.f, 100.f);
+        aroundAnima.setDuration(600);
+        aroundAnima.setInterpolator(new AccelerateDecelerateInterpolator());
+        aroundAnima.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
                 fraction = valueAnimator.getAnimatedFraction();
-                itemIconSize = (int) ((1 - fraction) * iconSize);
+                // 中心主菜单图标以两倍速度缩小
+                float animaFraction = fraction * 2 >= 1 ? 1 : fraction * 2;
+                itemIconSize = (int) ((1 - animaFraction) * iconSize);
                 invalidate();
             }
         });
-        closeAnima.addListener(new AnimatorListenerAdapter() {
+        aroundAnima.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
                 status = STATUS_MENU_CLOSE_CLEAR;
             }
         });
 
-        ValueAnimator clearAnima = ValueAnimator.ofFloat(1.f, 100.f);
-        clearAnima.setDuration(500);
-        clearAnima.setInterpolator(new OvershootInterpolator());
-        clearAnima.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        // 环状轨迹扩散消失动画驱动
+        ValueAnimator spreadAnima = ValueAnimator.ofFloat(1.f, 100.f);
+        spreadAnima.setInterpolator(new LinearInterpolator());
+        spreadAnima.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
                 fraction = valueAnimator.getAnimatedFraction();
-                itemIconSize = (int) (fraction * iconSize);
+            }
+        });
+
+        // 主菜单转动动画驱动
+        ValueAnimator rotateAnima = ValueAnimator.ofFloat(1.f, 100.f);
+        rotateAnima.setInterpolator(new OvershootInterpolator());
+        rotateAnima.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                rFraction = valueAnimator.getAnimatedFraction();
+                itemIconSize = (int) (rFraction * iconSize);
                 invalidate();
             }
         });
-        clearAnima.addListener(new AnimatorListenerAdapter() {
+        rotateAnima.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
                 status = STATUS_MENU_CLOSED;
             }
         });
 
+        AnimatorSet closeAnimaSet = new AnimatorSet();
+        closeAnimaSet.setDuration(500);
+        closeAnimaSet.play(spreadAnima).with(rotateAnima);
         AnimatorSet animatorSet = new AnimatorSet();
-        animatorSet.play(closeAnima).before(clearAnima);
+        animatorSet.play(aroundAnima).before(closeAnimaSet);
         animatorSet.start();
     }
 
