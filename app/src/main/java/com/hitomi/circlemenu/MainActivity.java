@@ -27,15 +27,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         circleMenu = (CircleMenu) findViewById(R.id.circle_menu);
+        // 设置打开/关闭菜单图标
         circleMenu.setMainIconResource(R.mipmap.icon_menu, R.mipmap.icon_cancel);
+        // 设置一组 Resource 格式的子菜单项图
         circleMenu.setSubIconResources(iconResArray);
-
         circleMenu.setOnMenuSelectedListener(new OnMenuSelectedListener() {
             @Override
             public void onMenuSelected(int index) {
             }
         });
-
         circleMenu.setOnMenuStatusChangeListener(new OnMenuStatusChangeListener() {
             @Override
             public void onMenuOpened() {
