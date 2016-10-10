@@ -5,7 +5,7 @@
 
    该库在实现的时候碰到了许多困难。比如选中子菜单项绘制圆环轨迹路径的时候，使用 PathMeasure 发现 getSegment 方法并不是可以截取任何两个位置之间的 Path（因为要从选中的子菜单按钮的位置开始绘制圆环轨迹路径），思考良久后，使用旋转画布的方法巧妙解决。
 
-   又例如，在圆环绘制完成后，圆环会逐渐放大扩散变透明，然后消失的动画。如果这个动画针对的是一个 View对象，我想使用 ObjectAnimator 可以很快解决。但是现在是在 onDraw 中绘制这一动画效果。最困难的是绘制圆环扩散变透明直至消失这一动画效果。（ps:期间还问过我 QQ 中所有技术群。都说很简单，就是没人说具体，群中绝大部分都是各种灌水，到最后也得不到答案。那时候的感觉很糟糕，感觉再也不相信技术群了，伤心···）最后实现很简单，也是无意中发现 ColorUtils 这个类， ColorUtils 是 Support.v4 中提供的，封装了对 Color 的各种操作。我使用了 ColorUtils.setAlphaComponent(color, alpha) 来操作圆环的颜色的明度，从而达到一个圆环逐渐消失的效果。
+   又例如，在圆环绘制完成后，圆环会逐渐放大扩散变透明，然后消失的动画。如果这个动画针对的是一个 View对象，我想使用 ObjectAnimator 可以很快解决。但是现在是在 onDraw 中绘制这一动画效果。最困难的是绘制圆环扩散变透明直至消失这一动画效果。（ps:期间还问过我 QQ 中所有技术群。都说很简单，就是没人说具体，群中绝大部分都是各种灌水，到最后也得不到答案。那时候的感觉很糟糕，感觉再也不相信技术群了，伤心···）最后实现很简单，也是无意中发现 ColorUtils 这个类， ColorUtils 是 Support.v4 中提供的，封装了对 Color 的各种操作。我使用了 ColorUtils.setAlphaComponent(color, alpha) 来操作圆环的颜色的透明度，从而达到一个圆环逐渐消失的效果。
 
    最后谢谢 [Aige](http://blog.csdn.net/aigestudio?viewmode=contents) 和 [GcsSloop](http://www.gcssloop.com/#blog) 两位大神无私奉献。让我能深入学习自定义 View 范畴的知识。让我有能力去完成这个项目。
 
