@@ -684,9 +684,10 @@ public class CircleMenu extends View {
      * Open the CircleMenu
      */
     public void openMenu() {
-        if (isOpened()) return;
-        status = STATUS_MENU_OPEN;
-        startOpenMenuAnima();
+        if (status == STATUS_MENU_CLOSED) {
+            status = STATUS_MENU_OPEN;
+            startOpenMenuAnima();
+        }
     }
 
     /**
@@ -694,9 +695,10 @@ public class CircleMenu extends View {
      * Close the CircleMenu
      */
     public void closeMenu() {
-        if (!isOpened()) return;
-        status = STATUS_MENU_CANCEL;
-        startCancelMenuAnima();
+        if (status == STATUS_MENU_OPENED) {
+            status = STATUS_MENU_CANCEL;
+            startCancelMenuAnima();
+        }
     }
 
     /**
