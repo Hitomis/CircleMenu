@@ -679,6 +679,35 @@ public class CircleMenu extends View {
         this.menuColors = menuColors;
     }
 
+    /**
+     * 打开菜单
+     * Open the CircleMenu
+     */
+    public void openMenu() {
+        if (isOpened()) return;
+        status = STATUS_MENU_OPEN;
+        startOpenMenuAnima();
+    }
+
+    /**
+     * 关闭菜单
+     * Close the CircleMenu
+     */
+    public void closeMenu() {
+        if (!isOpened()) return;
+        status = STATUS_MENU_CANCEL;
+        startCancelMenuAnima();
+    }
+
+    /**
+     * 菜单是否关闭
+     * Returns whether the menu is alread open
+     * @return
+     */
+    public boolean isOpened() {
+        return status == STATUS_MENU_OPENED;
+    }
+
     public void setOnMenuSelectedListener(OnMenuSelectedListener listener) {
         this.onMenuSelectedListener = listener;
     }

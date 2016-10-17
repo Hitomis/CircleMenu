@@ -2,6 +2,7 @@ package com.hitomi.circlemenu;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
 
 import com.hitomi.cmlibrary.CircleMenu;
 import com.hitomi.cmlibrary.OnMenuSelectedListener;
@@ -45,5 +46,16 @@ public class MainActivity extends AppCompatActivity {
             public void onMenuClosed() {
             }
         });
+    }
+
+    @Override
+    public boolean onMenuOpened(int featureId, Menu menu) {
+        circleMenu.openMenu();
+        return super.onMenuOpened(featureId, menu);
+    }
+
+    @Override
+    public void onBackPressed() {
+        circleMenu.closeMenu();
     }
 }
