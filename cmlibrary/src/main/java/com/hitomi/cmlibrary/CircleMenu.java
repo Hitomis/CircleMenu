@@ -206,6 +206,7 @@ public class CircleMenu extends View {
     private void drawCircleIcon(Canvas canvas) {
         canvas.save();
         Drawable selDrawable = iconDrawables[clickIndex - 1];
+        if (selDrawable == null) return ;
         int startAngle = (clickIndex - 1) * (360 / ITEM_NUM);
         int endAngle = 360 + startAngle;
         int itemX = (int) (centerX + Math.sin(Math.toRadians((endAngle - startAngle) * fraction + startAngle)) * circleMenuRadius);
@@ -285,6 +286,7 @@ public class CircleMenu extends View {
     }
 
     private void resetBoundsAndDrawIcon(Canvas canvas, Drawable drawable, int centerX, int centerY, int diff) {
+        if (drawable == null) return;
         drawable.setBounds(centerX - diff, centerY - diff, centerX + diff, centerY + diff);
         drawable.draw(canvas);
     }
@@ -325,6 +327,7 @@ public class CircleMenu extends View {
         canvas.save();
         switch (status) {
             case STATUS_MENU_CLOSED:
+                if (openMenuIcon != null)
                 openMenuIcon.draw(canvas);
                 break;
             case STATUS_MENU_OPEN:
@@ -343,6 +346,7 @@ public class CircleMenu extends View {
                 break;
             case STATUS_MENU_CANCEL:
                 canvas.rotate(-45 * fraction, centerX, centerY);
+                if (closeMenuIcon != null)
                 closeMenuIcon.draw(canvas);
                 break;
         }
