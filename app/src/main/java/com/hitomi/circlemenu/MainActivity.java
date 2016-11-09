@@ -1,26 +1,15 @@
 package com.hitomi.circlemenu;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 
 import com.hitomi.cmlibrary.CircleMenu;
-import com.hitomi.cmlibrary.OnMenuSelectedListener;
-import com.hitomi.cmlibrary.OnMenuStatusChangeListener;
 
 public class MainActivity extends AppCompatActivity {
 
     private CircleMenu circleMenu;
-
-    private int[] iconResArray = new int[5];
-
-    {
-        iconResArray[0] = R.mipmap.icon_home;
-        iconResArray[1] = R.mipmap.icon_search;
-        iconResArray[2] = R.mipmap.icon_notify;
-        iconResArray[3] = R.mipmap.icon_setting;
-        iconResArray[4] = R.mipmap.icon_gps;
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,24 +17,27 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         circleMenu = (CircleMenu) findViewById(R.id.circle_menu);
-        // 设置打开/关闭菜单图标
-        circleMenu.setMainIconResource(R.mipmap.icon_menu, R.mipmap.icon_cancel);
-        // 设置一组 Resource 格式的子菜单项图
-        circleMenu.setSubIconResources(iconResArray);
-        circleMenu.setOnMenuSelectedListener(new OnMenuSelectedListener() {
-            @Override
-            public void onMenuSelected(int index) {
-            }
-        });
-        circleMenu.setOnMenuStatusChangeListener(new OnMenuStatusChangeListener() {
-            @Override
-            public void onMenuOpened() {
-            }
 
-            @Override
-            public void onMenuClosed() {
-            }
-        });
+        circleMenu.setMainMenu(Color.parseColor("#CDCDCD"), R.mipmap.icon_menu, R.mipmap.icon_cancel);
+//                .addSubMenu(Color.parseColor("#258CFF"), R.mipmap.icon_home)
+//                .addSubMenu(Color.parseColor("#30A400"), R.mipmap.icon_search)
+//                .addSubMenu(Color.parseColor("#FF4B32"), R.mipmap.icon_notify)
+//                .addSubMenu(Color.parseColor("#8A39FF"), R.mipmap.icon_setting)
+//                .addSubMenu(Color.parseColor("#FF6A00"), R.mipmap.icon_gps)
+//                .setOnMenuSelectedListener(new OnMenuSelectedListener() {
+//
+//                    @Override
+//                    public void onMenuSelected(int index) {}
+//
+//                }).setOnMenuStatusChangeListener(new OnMenuStatusChangeListener() {
+//
+//                    @Override
+//                    public void onMenuOpened() {}
+//
+//                    @Override
+//                    public void onMenuClosed() {}
+//
+//                });
     }
 
     @Override
