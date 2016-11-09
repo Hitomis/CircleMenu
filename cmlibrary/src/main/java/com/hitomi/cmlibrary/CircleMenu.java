@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -13,6 +14,7 @@ import android.graphics.PathMeasure;
 import android.graphics.RadialGradient;
 import android.graphics.RectF;
 import android.graphics.Shader;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.v4.graphics.ColorUtils;
 import android.util.AttributeSet;
@@ -625,6 +627,10 @@ public class CircleMenu extends View {
         return getResources().getDrawable(iconRes);
     }
 
+    private Drawable convertBitmap(Bitmap bitmap) {
+        return new BitmapDrawable(getResources(), bitmap);
+    }
+
     private void resetMainDrawableBounds() {
         openMenuIcon.setBounds(centerX - iconSize / 2, centerY - iconSize / 2,
                 centerX + iconSize / 2, centerY + iconSize / 2);
@@ -632,6 +638,13 @@ public class CircleMenu extends View {
                 centerX + iconSize / 2, centerY + iconSize / 2);
     }
 
+    /**
+     * 设置主菜单的背景色，以及打开/关闭的图标
+     * @param mainMenuColor 主菜单背景色
+     * @param openMenuRes 菜单打开图标，Resource 格式
+     * @param closeMenuRes 菜单关闭图标，Resource 格式
+     * @return
+     */
     public CircleMenu setMainMenu(int mainMenuColor, int openMenuRes, int closeMenuRes) {
         openMenuIcon = convertDrawable(openMenuRes);
         closeMenuIcon = convertDrawable(closeMenuRes);
@@ -640,10 +653,76 @@ public class CircleMenu extends View {
         return this;
     }
 
+    /**
+     * 设置主菜单的背景色，以及打开/关闭的图标
+     * @param mainMenuColor 主菜单背景色
+     * @param openMenuBitmap 菜单打开图标，Bitmap 格式
+     * @param closeMenuBitmap 菜单关闭图标，Bitmap 格式
+     * @return
+     */
+    public CircleMenu setMainMenu(int mainMenuColor, Bitmap openMenuBitmap, Bitmap closeMenuBitmap) {
+        openMenuIcon = convertBitmap(openMenuBitmap);
+        closeMenuIcon = convertBitmap(closeMenuBitmap);
+        this.mainMenuColor = mainMenuColor;
+        resetMainDrawableBounds();
+        return this;
+    }
+
+    /**
+     * 设置主菜单的背景色，以及打开/关闭的图标
+     * @param mainMenuColor 主菜单背景色
+     * @param openMenuDrawable 菜单打开图标，Drawable 格式
+     * @param closeMenuDrawable 菜单关闭图标，Drawable 格式
+     * @return
+     */
+    public CircleMenu setMainMenu(int mainMenuColor, Drawable openMenuDrawable, Drawable closeMenuDrawable) {
+        openMenuIcon = openMenuDrawable;
+        closeMenuIcon = closeMenuDrawable;
+        this.mainMenuColor = mainMenuColor;
+        resetMainDrawableBounds();
+        return this;
+    }
+
+    /**
+     * 添加一个子菜单项，包括子菜单的背景色以及图标
+     * @param menuColor 子菜单的背景色
+     * @param menuRes 子菜单图标，Resource 格式
+     * @return
+     */
     public CircleMenu addSubMenu(int menuColor, int menuRes) {
         if (subMenuColorList.size() < MAX_SUBMENU_NUM && subMenuDrawableList.size() < MAX_SUBMENU_NUM) {
             subMenuColorList.add(menuColor);
             subMenuDrawableList.add(convertDrawable(menuRes));
+            itemNum = Math.min(subMenuColorList.size(), subMenuDrawableList.size());
+        }
+        return this;
+    }
+
+    /**
+     * 添加一个子菜单项，包括子菜单的背景色以及图标
+     * @param menuColor 子菜单的背景色
+     * @param menuBitmap 子菜单图标，Bitmap 格式
+     * @return
+     */
+    public CircleMenu addSubMenu(int menuColor, Bitmap menuBitmap) {
+        if (subMenuColorList.size() < MAX_SUBMENU_NUM && subMenuDrawableList.size() < MAX_SUBMENU_NUM) {
+            subMenuColorList.add(menuColor);
+            subMenuDrawableList.add(convertBitmap(menuBitmap));
+            itemNum = Math.min(subMenuColorList.size(), subMenuDrawableList.size());
+        }
+        return this;
+    }
+
+    /**
+     * 添加一个子菜单项，包括子菜单的背景色以及图标
+     * @param menuColor 子菜单的背景色
+     * @param menuDrawable 子菜单图标，Drawable 格式
+     * @return
+     */
+    public CircleMenu addSubMenu(int menuColor, Drawable menuDrawable) {
+        if (subMenuColorList.size() < MAX_SUBMENU_NUM && subMenuDrawableList.size() < MAX_SUBMENU_NUM) {
+            subMenuColorList.add(menuColor);
+            subMenuDrawableList.add(menuDrawable);
             itemNum = Math.min(subMenuColorList.size(), subMenuDrawableList.size());
         }
         return this;
