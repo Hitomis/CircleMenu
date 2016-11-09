@@ -30,9 +30,9 @@ import java.util.List;
 
 /**
  * Created by hitomi on 2016/9/28.
- * <p/>
+ * <p>
  * github : https://github.com/Hitomis <br/>
- * <p/>
+ * <p>
  * email : 196425254@qq.com
  */
 public class CircleMenu extends View {
@@ -461,7 +461,7 @@ public class CircleMenu extends View {
 
     /**
      * 用于完成在 View 中的圆环逐渐扩散消失的动画效果 <br/>
-     * <p/>
+     * <p>
      * 根据 fraction 调整 color 的 Alpha 值
      *
      * @param color   被调整 Alpha 值的颜色
