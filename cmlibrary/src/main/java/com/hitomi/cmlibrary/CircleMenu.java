@@ -776,7 +776,7 @@ public class CircleMenu extends View {
         return this;
     }
 
-    public int dip2px(float dpValue) {
+    private int dip2px(float dpValue) {
         final float scale = getContext().getResources().getDisplayMetrics().density;
         return (int) (dpValue * scale + 0.5f);
     }
