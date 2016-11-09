@@ -640,9 +640,10 @@ public class CircleMenu extends View {
 
     /**
      * 设置主菜单的背景色，以及打开/关闭的图标
+     *
      * @param mainMenuColor 主菜单背景色
-     * @param openMenuRes 菜单打开图标，Resource 格式
-     * @param closeMenuRes 菜单关闭图标，Resource 格式
+     * @param openMenuRes   菜单打开图标，Resource 格式
+     * @param closeMenuRes  菜单关闭图标，Resource 格式
      * @return
      */
     public CircleMenu setMainMenu(int mainMenuColor, int openMenuRes, int closeMenuRes) {
@@ -655,8 +656,9 @@ public class CircleMenu extends View {
 
     /**
      * 设置主菜单的背景色，以及打开/关闭的图标
-     * @param mainMenuColor 主菜单背景色
-     * @param openMenuBitmap 菜单打开图标，Bitmap 格式
+     *
+     * @param mainMenuColor   主菜单背景色
+     * @param openMenuBitmap  菜单打开图标，Bitmap 格式
      * @param closeMenuBitmap 菜单关闭图标，Bitmap 格式
      * @return
      */
@@ -670,8 +672,9 @@ public class CircleMenu extends View {
 
     /**
      * 设置主菜单的背景色，以及打开/关闭的图标
-     * @param mainMenuColor 主菜单背景色
-     * @param openMenuDrawable 菜单打开图标，Drawable 格式
+     *
+     * @param mainMenuColor     主菜单背景色
+     * @param openMenuDrawable  菜单打开图标，Drawable 格式
      * @param closeMenuDrawable 菜单关闭图标，Drawable 格式
      * @return
      */
@@ -685,8 +688,9 @@ public class CircleMenu extends View {
 
     /**
      * 添加一个子菜单项，包括子菜单的背景色以及图标
+     *
      * @param menuColor 子菜单的背景色
-     * @param menuRes 子菜单图标，Resource 格式
+     * @param menuRes   子菜单图标，Resource 格式
      * @return
      */
     public CircleMenu addSubMenu(int menuColor, int menuRes) {
@@ -700,7 +704,8 @@ public class CircleMenu extends View {
 
     /**
      * 添加一个子菜单项，包括子菜单的背景色以及图标
-     * @param menuColor 子菜单的背景色
+     *
+     * @param menuColor  子菜单的背景色
      * @param menuBitmap 子菜单图标，Bitmap 格式
      * @return
      */
@@ -715,7 +720,8 @@ public class CircleMenu extends View {
 
     /**
      * 添加一个子菜单项，包括子菜单的背景色以及图标
-     * @param menuColor 子菜单的背景色
+     *
+     * @param menuColor    子菜单的背景色
      * @param menuDrawable 子菜单图标，Drawable 格式
      * @return
      */
