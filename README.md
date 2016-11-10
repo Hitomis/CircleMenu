@@ -1,5 +1,7 @@
 # CircleMenu
 
+[![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-CircleMenu-brightgreen.svg?style=flat)](http://android-arsenal.com/details/1/4631)
+
 CircleMenu 是一个精美别致支持定制的圆形菜单，可以有 0 到 8 个子菜单按钮，按钮背景色，图标都可以修改。CircleMenu 比较适合放在屏幕中间，以得到完好的展现。
 
 小记：<br/>
