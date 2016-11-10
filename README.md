@@ -1,6 +1,7 @@
 # CircleMenu
 
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-CircleMenu-brightgreen.svg?style=flat)](http://android-arsenal.com/details/1/4631)
+[![](https://jitpack.io/v/Hitomis/CircleMenu.svg)](https://jitpack.io/#Hitomis/CircleMenu)
 
 CircleMenu 是一个精美别致支持定制的圆形菜单，可以有 0 到 8 个子菜单按钮，按钮背景色，图标都可以修改。CircleMenu 比较适合放在屏幕中间，以得到完好的展现。
 
@@ -22,9 +23,42 @@ CircleMenu 是一个精美别致支持定制的圆形菜单，可以有 0 到 8 
 
 # Import
 
-导入 cmlibrary module，或者直接拷贝 com.hitomi.cmlibrary 包下所有 java 文件到您的项目中
-等项目稳定后，会支持 gradle。
+### Gradle
 
+Step 1. Add the JitPack repository to your build file
+
+	allprojects {
+		repositories {
+			...
+			maven { url "https://jitpack.io" }
+		}
+	}
+   
+Step 2. Add the dependency
+
+	dependencies {
+	        compile 'com.github.Hitomis:CircleMenu:v1.0.0'
+	}
+   
+### Maven
+   
+Step 1. Add the JitPack repository to your build file
+
+	<repositories>
+		<repository>
+		    <id>jitpack.io</id>
+		    <url>https://jitpack.io</url>
+		</repository>
+	</repositories>
+   
+Step 2. Add the dependency
+
+	<dependency>
+	    <groupId>com.github.Hitomis</groupId>
+	    <artifactId>CircleMenu</artifactId>
+	    <version>v1.0.0</version>
+	</dependency>
+   
 # Usage
 
 布局文件中：
