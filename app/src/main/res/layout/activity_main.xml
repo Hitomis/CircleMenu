@@ -7,8 +7,7 @@
 
     <com.hitomi.cmlibrary.CircleMenu
         android:id="@+id/circle_menu"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true" />
+        android:layout_width="160dp"
+        android:layout_height="160dp" />
 
 </RelativeLayout>
