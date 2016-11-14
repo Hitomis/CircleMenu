@@ -51,13 +51,13 @@ public class CircleMenu extends View {
 
     private static final int MAX_SUBMENU_NUM = 8;
 
-    private final int partSize = dip2px(20);
-
-    private final int iconSize = partSize * 4 / 5;
-
-    private final float circleMenuRadius = partSize * 3;
-
     private final int shadowRadius = 5;
+
+    private int partSize;
+
+    private int iconSize;
+
+    private float circleMenuRadius;
 
     private int itemNum;
 
@@ -117,21 +117,10 @@ public class CircleMenu extends View {
 
     private void init() {
         initTool();
-
-        centerX = partSize * 5;
-        centerY = centerX;
-
-        path.addCircle(centerX, centerY, circleMenuRadius, Path.Direction.CW);
-        pathMeasure.setPath(path, true);
-        pathLength = pathMeasure.getLength();
-
         mainMenuColor = Color.parseColor("#CDCDCD");
         subMenuColorList = new ArrayList<>();
         subMenuDrawableList = new ArrayList<>();
         menuRectFList = new ArrayList<>();
-
-        RectF mainMenuRectF = new RectF(centerX - partSize, centerY - partSize, centerX + partSize, centerY + partSize);
-        menuRectFList.add(mainMenuRectF);
     }
 
     private void initTool() {
@@ -152,8 +141,43 @@ public class CircleMenu extends View {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int measureSize = partSize * 5 * 2;
-        setMeasuredDimension(measureSize, measureSize);
+        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
+        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+
+        int width = MeasureSpec.getSize(widthMeasureSpec);
+        int height = MeasureSpec.getSize(heightMeasureSpec);
+
+        int measureWidthSize = width, measureHeightSize = height;
+
+        if (widthMode == MeasureSpec.AT_MOST) {
+            measureWidthSize = dip2px(20) * 10;
+        }
+
+        if (heightMode == MeasureSpec.AT_MOST) {
+            measureHeightSize = dip2px(20) * 10;
+        }
+        setMeasuredDimension(measureWidthSize, measureHeightSize);
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+
+        int minSize = Math.min(getMeasuredWidth(), getMeasuredHeight());
+
+        partSize = minSize / 10;
+        iconSize = partSize * 4 / 5;
+        circleMenuRadius = partSize * 3;
+
+        centerX = getMeasuredWidth() / 2;
+        centerY = getMeasuredHeight() / 2;
+
+        path.addCircle(centerX, centerY, circleMenuRadius, Path.Direction.CW);
+        pathMeasure.setPath(path, true);
+        pathLength = pathMeasure.getLength();
+
+        RectF mainMenuRectF = new RectF(centerX - partSize, centerY - partSize, centerX + partSize, centerY + partSize);
+        menuRectFList.add(mainMenuRectF);
     }
 
     @Override
