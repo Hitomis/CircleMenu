@@ -37,7 +37,7 @@ Step 1. Add the JitPack repository to your build file
 Step 2. Add the dependency
 
 	dependencies {
-	        compile 'com.github.Hitomis:CircleMenu:v1.0.1'
+	        compile 'com.github.Hitomis:CircleMenu:v1.0.2'
 	}
    
 ### Maven
@@ -56,7 +56,7 @@ Step 2. Add the dependency
 	<dependency>
 	    <groupId>com.github.Hitomis</groupId>
 	    <artifactId>CircleMenu</artifactId>
-	    <version>v1.0.1</version>
+	    <version>v1.0.2</version>
 	</dependency>
    
 # Usage
