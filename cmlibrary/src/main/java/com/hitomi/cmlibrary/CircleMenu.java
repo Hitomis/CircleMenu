@@ -16,6 +16,7 @@ import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.support.v4.graphics.ColorUtils;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -117,7 +118,12 @@ public class CircleMenu extends View {
 
     private void init() {
         initTool();
+
         mainMenuColor = Color.parseColor("#CDCDCD");
+
+        openMenuIcon = new GradientDrawable();
+        closeMenuIcon = new GradientDrawable();
+
         subMenuColorList = new ArrayList<>();
         subMenuDrawableList = new ArrayList<>();
         menuRectFList = new ArrayList<>();
