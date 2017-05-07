@@ -111,7 +111,7 @@ Activity 中：
    原型设计来源于 [dribbble](https://dribbble.com/shots/2534780-Circle-Menu-Swift-Open-Source)<br/>
    IOS 版本 [Ramotion](https://github.com/Ramotion/circle-menu)
 
-#Licence
+# Licence
 
       Copyright 2016 Hitomis, Inc.
 
