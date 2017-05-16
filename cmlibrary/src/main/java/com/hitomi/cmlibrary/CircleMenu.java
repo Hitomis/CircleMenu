@@ -29,6 +29,8 @@ import android.view.animation.OvershootInterpolator;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.R.attr.start;
+
 /**
  * Created by hitomi on 2016/9/28.
  * <p>
@@ -440,7 +442,7 @@ public class CircleMenu extends View {
                     clickIndex = index;
                     updatePressEffect(index, pressed);
                 }
-                if (index == 0) { // 点击的是中间的按钮
+                if (index <= 0) { // 点击的是中间的按钮
                     if (status == STATUS_MENU_CLOSED) {
                         status = STATUS_MENU_OPEN;
                         startOpenMenuAnima();
@@ -786,7 +788,7 @@ public class CircleMenu extends View {
 
     /**
      * 菜单是否关闭
-     * Returns whether the menu is alread open
+     * Returns whether the menu is already open
      *
      * @return
      */
