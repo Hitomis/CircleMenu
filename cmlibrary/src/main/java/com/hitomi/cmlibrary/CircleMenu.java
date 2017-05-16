@@ -29,8 +29,6 @@ import android.view.animation.OvershootInterpolator;
 import java.util.ArrayList;
 import java.util.List;
 
-import static android.R.attr.start;
-
 /**
  * Created by hitomi on 2016/9/28.
  * <p>
@@ -456,7 +454,7 @@ public class CircleMenu extends View {
                         if (onMenuSelectedListener != null)
                             onMenuSelectedListener.onMenuSelected(index - 1);
                         rotateAngle = clickIndex * (360 / itemNum) - (360 / itemNum) - 90;
-                        startCloseMeunAnima();
+                        startCloseMenuAnima();
                     }
                 }
                 break;
@@ -576,7 +574,7 @@ public class CircleMenu extends View {
      * <li>主菜单按钮旋转</li>
      * </ur>
      */
-    private void startCloseMeunAnima() {
+    private void startCloseMenuAnima() {
         // 选中菜单项转动一周动画驱动
         ValueAnimator aroundAnima = ValueAnimator.ofFloat(1.f, 100.f);
         aroundAnima.setDuration(600);
