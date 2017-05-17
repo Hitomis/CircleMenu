@@ -62,6 +62,8 @@ public class CircleMenu extends View {
 
     private int itemNum;
 
+    private int deltaAngle;
+
     private float itemMenuRadius;
 
     private float fraction, rFraction;
@@ -248,8 +250,8 @@ public class CircleMenu extends View {
         if (selDrawable == null) return;
         int startAngle = (clickIndex - 1) * (360 / itemNum);
         int endAngle = 360 + startAngle;
-        int itemX = (int) (centerX + Math.sin(Math.toRadians((endAngle - startAngle) * fraction + startAngle)) * circleMenuRadius);
-        int itemY = (int) (centerY - Math.cos(Math.toRadians((endAngle - startAngle) * fraction + startAngle)) * circleMenuRadius);
+        int itemX = (int) (centerX + Math.sin(Math.toRadians((endAngle - startAngle) * fraction + startAngle + deltaAngle)) * circleMenuRadius);
+        int itemY = (int) (centerY - Math.cos(Math.toRadians((endAngle - startAngle) * fraction + startAngle + deltaAngle)) * circleMenuRadius);
         canvas.rotate(360 * fraction, itemX, itemY);
         selDrawable.setBounds(itemX - iconSize / 2, itemY - iconSize / 2, itemX + iconSize / 2, itemY + iconSize / 2);
         selDrawable.draw(canvas);
@@ -283,7 +285,7 @@ public class CircleMenu extends View {
         final float offsetRadius = 1.5f;
         RectF menuRectF;
         for (int i = 0; i < itemNum; i++) {
-            angle = i * (360 / itemNum);
+            angle = i * (360 / itemNum) + deltaAngle;
             if (status == STATUS_MENU_OPEN) {
                 itemX = (int) (centerX + Math.sin(Math.toRadians(angle)) * (circleMenuRadius - (1 - fraction) * partSize * offsetRadius));
                 itemY = (int) (centerY - Math.cos(Math.toRadians(angle)) * (circleMenuRadius - (1 - fraction) * partSize * offsetRadius));
@@ -458,7 +460,7 @@ public class CircleMenu extends View {
                                     onMenuSelectedListener.onMenuSelected(index - 1);
                                 }
                             }, 600);
-                        rotateAngle = clickIndex * (360 / itemNum) - (360 / itemNum) - 90;
+                        rotateAngle = clickIndex * (360 / itemNum) - (360 / itemNum) - 90 + deltaAngle;
                         startCloseMenuAnima();
                     }
                 }
@@ -731,6 +733,7 @@ public class CircleMenu extends View {
             subMenuColorList.add(menuColor);
             subMenuDrawableList.add(convertDrawable(menuRes));
             itemNum = Math.min(subMenuColorList.size(), subMenuDrawableList.size());
+            recalculateDeltaAngle();
         }
         return this;
     }
@@ -747,6 +750,7 @@ public class CircleMenu extends View {
             subMenuColorList.add(menuColor);
             subMenuDrawableList.add(convertBitmap(menuBitmap));
             itemNum = Math.min(subMenuColorList.size(), subMenuDrawableList.size());
+            recalculateDeltaAngle();
         }
         return this;
     }
@@ -763,6 +767,7 @@ public class CircleMenu extends View {
             subMenuColorList.add(menuColor);
             subMenuDrawableList.add(menuDrawable);
             itemNum = Math.min(subMenuColorList.size(), subMenuDrawableList.size());
+            recalculateDeltaAngle();
         }
         return this;
     }
@@ -812,5 +817,19 @@ public class CircleMenu extends View {
     private int dip2px(float dpValue) {
         final float scale = getContext().getResources().getDisplayMetrics().density;
         return (int) (dpValue * scale + 0.5f);
+    }
+
+    private void recalculateDeltaAngle() {
+        switch (itemNum) {
+            case 1:
+                deltaAngle = 90;
+                break;
+            case 2:
+                deltaAngle = -90;
+                break;
+            default:
+                deltaAngle = 0;
+                break;
+        }
     }
 }
