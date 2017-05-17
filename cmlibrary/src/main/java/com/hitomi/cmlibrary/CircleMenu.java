@@ -419,7 +419,7 @@ public class CircleMenu extends View {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (status == STATUS_MENU_CLOSE || status == STATUS_MENU_CLOSE_CLEAR) return true;
-        int index = clickWhichRectF(event.getX(), event.getY());
+        final int index = clickWhichRectF(event.getX(), event.getY());
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 pressed = true;
@@ -452,7 +452,12 @@ public class CircleMenu extends View {
                     if (status == STATUS_MENU_OPENED && index != -1) {
                         status = STATUS_MENU_CLOSE;
                         if (onMenuSelectedListener != null)
-                            onMenuSelectedListener.onMenuSelected(index - 1);
+                            postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    onMenuSelectedListener.onMenuSelected(index - 1);
+                                }
+                            }, 600);
                         rotateAngle = clickIndex * (360 / itemNum) - (360 / itemNum) - 90;
                         startCloseMenuAnima();
                     }
