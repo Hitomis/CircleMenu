@@ -248,10 +248,10 @@ public class CircleMenu extends View {
         canvas.save();
         Drawable selDrawable = subMenuDrawableList.get(clickIndex - 1);
         if (selDrawable == null) return;
-        int startAngle = (clickIndex - 1) * (360 / itemNum);
+        int startAngle = (clickIndex - 1) * (360 / itemNum) + deltaAngle;
         int endAngle = 360 + startAngle;
-        int itemX = (int) (centerX + Math.sin(Math.toRadians((endAngle - startAngle) * fraction + startAngle + deltaAngle)) * circleMenuRadius);
-        int itemY = (int) (centerY - Math.cos(Math.toRadians((endAngle - startAngle) * fraction + startAngle + deltaAngle)) * circleMenuRadius);
+        int itemX = (int) (centerX + Math.sin(Math.toRadians((endAngle - startAngle) * fraction + startAngle)) * circleMenuRadius);
+        int itemY = (int) (centerY - Math.cos(Math.toRadians((endAngle - startAngle) * fraction + startAngle)) * circleMenuRadius);
         canvas.rotate(360 * fraction, itemX, itemY);
         selDrawable.setBounds(itemX - iconSize / 2, itemY - iconSize / 2, itemX + iconSize / 2, itemY + iconSize / 2);
         selDrawable.draw(canvas);
