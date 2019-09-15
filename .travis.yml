@@ -38,4 +38,4 @@ env:
 
 # Publish a SNAPSHOT build for all commits to master.
 script:
-  - ./gradlew build
+  - ./gradlew build --stacktrace
